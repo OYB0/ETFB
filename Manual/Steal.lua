@@ -3,7 +3,6 @@
 local API = getgenv().OYB_API
 local StealPage = API.UI.StealPage
 local TweenService = game:GetService("TweenService")
-local UserInputService = game:GetService("UserInputService")
 
 local searchRow = Instance.new("Frame", StealPage)
 searchRow.Size = UDim2.new(1, -10, 0, 30); searchRow.Position = UDim2.new(0, 0, 0, 2); searchRow.BackgroundTransparency = 1
@@ -87,35 +86,13 @@ API.Functions.SetFilterOpen = function(open)
     tw:Play(); tw.Completed:Connect(function() filterBusy = false; if not open then filterPopup.Visible = false end end)
 end
 
+-- يتم فتح أو إغلاق الفلتر فقط من الزر المخصص له أو من زر الإغلاق (X)
 filterBtn.MouseButton1Click:Connect(function() API.Functions.SetFilterOpen(not API.State.FilterOpen) end)
 fCloseBtn.MouseButton1Click:Connect(function() API.Functions.SetFilterOpen(false) end)
 fClearBtn.MouseButton1Click:Connect(function()
     API.State.ActiveFilters = {}
     for _, fb2 in pairs(filterRankBtns) do fb2.BackgroundColor3 = Color3.fromRGB(35,35,35); fb2.TextColor3 = Color3.new(1,1,1) end
     if API.Functions.UpdateUnits then API.Functions.UpdateUnits() end 
-end)
-
-UserInputService.InputBegan:Connect(function(inp)
-    if inp.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
-    if not API.State.FilterOpen then return end
-    
-    -- [تم الإصلاح]: فحص دقيق لمكان الضغطة لمنع الإغلاق التلقائي عند الضغط داخل القائمة أو على الأزرار
-    local mp = inp.Position
-    local fp = filterPopup.AbsolutePosition
-    local fs = filterPopup.AbsoluteSize
-    
-    -- تحديد حدود منطقة القائمة المنبثقة
-    local onPopup = mp.X >= fp.X and mp.X <= fp.X + fs.X and mp.Y >= fp.Y and mp.Y <= fp.Y + fs.Y
-    
-    -- تحديد حدود زر الفلتر نفسه
-    local bp = filterBtn.AbsolutePosition
-    local bs = filterBtn.AbsoluteSize
-    local onBtn = mp.X >= bp.X and mp.X <= bp.X + bs.X and mp.Y >= bp.Y and mp.Y <= bp.Y + bs.Y
-    
-    -- لا تغلق القائمة إلا إذا كانت الضغطة خارج القائمة وخارج الزر
-    if not onPopup and not onBtn then 
-        API.Functions.SetFilterOpen(false) 
-    end
 end)
 
 local UiButtonsCache = {}
