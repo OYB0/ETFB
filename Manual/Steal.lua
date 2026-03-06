@@ -98,11 +98,24 @@ end)
 UserInputService.InputBegan:Connect(function(inp)
     if inp.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
     if not API.State.FilterOpen then return end
-    local mp = inp.Position; local fp = filterPopup.AbsolutePosition; local fs = filterPopup.AbsoluteSize
-    local onPopup = mp.X >= fp.X and mp.X <= fp.X+fs.X and mp.Y >= fp.Y and mp.Y <= fp.Y+fs.Y
-    local bp = filterBtn.AbsolutePosition; local bs = filterBtn.AbsoluteSize
-    local onBtn = mp.X >= bp.X and mp.X <= bp.X+bs.X and mp.Y >= bp.Y and mp.Y <= bp.Y+bs.Y
-    if not onPopup and not onBtn then API.Functions.SetFilterOpen(false) end
+    
+    -- [تم الإصلاح]: فحص دقيق لمكان الضغطة لمنع الإغلاق التلقائي عند الضغط داخل القائمة أو على الأزرار
+    local mp = inp.Position
+    local fp = filterPopup.AbsolutePosition
+    local fs = filterPopup.AbsoluteSize
+    
+    -- تحديد حدود منطقة القائمة المنبثقة
+    local onPopup = mp.X >= fp.X and mp.X <= fp.X + fs.X and mp.Y >= fp.Y and mp.Y <= fp.Y + fs.Y
+    
+    -- تحديد حدود زر الفلتر نفسه
+    local bp = filterBtn.AbsolutePosition
+    local bs = filterBtn.AbsoluteSize
+    local onBtn = mp.X >= bp.X and mp.X <= bp.X + bs.X and mp.Y >= bp.Y and mp.Y <= bp.Y + bs.Y
+    
+    -- لا تغلق القائمة إلا إذا كانت الضغطة خارج القائمة وخارج الزر
+    if not onPopup and not onBtn then 
+        API.Functions.SetFilterOpen(false) 
+    end
 end)
 
 local UiButtonsCache = {}
@@ -133,7 +146,6 @@ local function AddToggleDynamic(uid, displayName, spawned, parent, targetTable, 
     btn:SetAttribute("UID", uid)
     
     btn.MouseButton1Click:Connect(function()
-        -- [تم الإصلاح هنا: استخدام المرجع المباشر API.State بدلاً من الجدول المؤقت القديم لمنع الجلتش بعد الـ Clear]
         API.State.SelectedUnits[uid] = not API.State.SelectedUnits[uid]
         btn.BackgroundColor3 = API.State.SelectedUnits[uid] and Color3.fromRGB(0, 120, 255) or Color3.fromRGB(30, 30, 30)
     end)
