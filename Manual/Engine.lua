@@ -90,12 +90,23 @@ task.spawn(function()
                 if rp and prompt and target.Parent then
                     API.Functions.CustomMove(rp.Position, false, target)
                     if target and target.Parent then 
-                        local start = tick();
+                        local start = tick()
+                        -- حساب الوقت الذي يحتاجه الزر للتعليق
+                        local holdTime = prompt.HoldDuration or 0
+                        
                         repeat 
-                            fireproximityprompt(prompt);
-                            -- تم إزالة كود الـ CFrame والـ Velocity من هنا بالكامل لإنهاء مشكلة اللاق وتقطيع الفريمات
-                            task.wait(0.1) 
-                        until not target or not target.Parent or (tick()-start) > 2.5 or not API.State.AutoFarmEnabled 
+                            if holdTime > 0 then
+                                -- إذا كان الزر يحتاج ضغطة مطولة (Hold)
+                                prompt:InputHoldBegin()
+                                fireproximityprompt(prompt)
+                                task.wait(holdTime + 0.1)
+                                prompt:InputHoldEnd()
+                            else
+                                -- إذا كان الزر يحتاج ضغطة سريعة فقط
+                                fireproximityprompt(prompt)
+                                task.wait(0.1) 
+                            end
+                        until not target or not target.Parent or (tick() - start) > (holdTime + 3) or not API.State.AutoFarmEnabled 
                     end
                     API.Functions.CustomMove(API.State.SafeZonePos, true)
                 end
