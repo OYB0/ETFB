@@ -90,23 +90,15 @@ task.spawn(function()
                 if rp and prompt and target.Parent then
                     API.Functions.CustomMove(rp.Position, false, target)
                     if target and target.Parent then 
-                        local start = tick()
-                        -- حساب الوقت الذي يحتاجه الزر للتعليق
-                        local holdTime = prompt.HoldDuration or 0
-                        
+                        local start = tick();
                         repeat 
-                            if holdTime > 0 then
-                                -- إذا كان الزر يحتاج ضغطة مطولة (Hold)
-                                prompt:InputHoldBegin()
-                                fireproximityprompt(prompt)
-                                task.wait(holdTime + 0.1)
-                                prompt:InputHoldEnd()
-                            else
-                                -- إذا كان الزر يحتاج ضغطة سريعة فقط
-                                fireproximityprompt(prompt)
-                                task.wait(0.1) 
+                            fireproximityprompt(prompt);
+                            if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then 
+                                LocalPlayer.Character.HumanoidRootPart.Velocity = Vector3.new(0,0,0);
+                                LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(LocalPlayer.Character.HumanoidRootPart.Position.X, API.State.FarmDepth, LocalPlayer.Character.HumanoidRootPart.Position.Z) 
                             end
-                        until not target or not target.Parent or (tick() - start) > (holdTime + 3) or not API.State.AutoFarmEnabled 
+                            task.wait(0.05) 
+                        until not target or not target.Parent or (tick()-start) > 2.5 or not API.State.AutoFarmEnabled 
                     end
                     API.Functions.CustomMove(API.State.SafeZonePos, true)
                 end
