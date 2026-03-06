@@ -4,15 +4,21 @@ local API = getgenv().OYB_API
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
+local function GetFolders()
+    return workspace:FindFirstChild("ActiveBrainrots"), workspace:FindFirstChild("ActiveLuckyBlocks")
+end
+
 local function GetBestTargetByName(uName)
     local best, highest = nil, -math.huge
-    if API.Constants.LuckyBlocksFolder then
-        for _, b in pairs(API.Constants.LuckyBlocksFolder:GetChildren()) do
+    local BrainrotsFolder, LuckyBlocksFolder = GetFolders()
+
+    if LuckyBlocksFolder then
+        for _, b in pairs(LuckyBlocksFolder:GetChildren()) do
             if API.Functions.GetBaseName(b.Name) == uName then return b end
         end
     end
-    if API.Constants.BrainrotsFolder then
-        for _, folder in pairs(API.Constants.BrainrotsFolder:GetChildren()) do
+    if BrainrotsFolder then
+        for _, folder in pairs(BrainrotsFolder:GetChildren()) do
             for _, child in pairs(folder:GetChildren()) do
                 local actualModel = child:FindFirstChildOfClass("Model") or child
                 if API.Functions.GetBaseName(actualModel.Name) == uName then 
@@ -27,8 +33,10 @@ end
 
 local function GetBestTargetByRank(rank)
     local best, highest = nil, -math.huge
-    if API.Constants.BrainrotsFolder and API.Constants.BrainrotsFolder:FindFirstChild(rank) then
-        for _, child in pairs(API.Constants.BrainrotsFolder[rank]:GetChildren()) do
+    local BrainrotsFolder, _ = GetFolders()
+
+    if BrainrotsFolder and BrainrotsFolder:FindFirstChild(rank) then
+        for _, child in pairs(BrainrotsFolder[rank]:GetChildren()) do
             local actualModel = child:FindFirstChildOfClass("Model") or child
             if actualModel and actualModel.Parent then
                 local t = API.Functions.GetUnitTime(child)
@@ -65,15 +73,14 @@ task.spawn(function()
                 for i = #API.Constants.Ranks, 1, -1 do
                     local rank = API.Constants.Ranks[i]
                     if API.State.SelectedRanksAuto[rank] then
-                        
-                        if API.State.AutoRankTarget == "LuckyBlocks" and API.Constants.LuckyBlocksFolder then
-                            for _, b in pairs(API.Constants.LuckyBlocksFolder:GetChildren()) do
+                        local BrainrotsFolder, LuckyBlocksFolder = GetFolders()
+                        if API.State.AutoRankTarget == "LuckyBlocks" and LuckyBlocksFolder then
+                            for _, b in pairs(LuckyBlocksFolder:GetChildren()) do
                                 if API.Functions.GetTargetRank(b.Name) == rank then
                                     target = b; break
                                 end
                             end
                             if target then break end
-                            
                         elseif API.State.AutoRankTarget == "Brainrots" then
                             local bestUnit = GetBestTargetByRank(rank)
                             if bestUnit then target = bestUnit; break end
@@ -90,30 +97,12 @@ task.spawn(function()
                 if rp and prompt and target.Parent then
                     API.Functions.CustomMove(rp.Position, false, target)
                     if target and target.Parent then 
-                        -- [تم الإصلاح للأجهزة الضعيفة]: تحسين منطق الالتقاط ليكون أسرع وأقل لاق
                         local start = tick();
-                        local holdTime = prompt.HoldDuration or 0
                         
-                        -- تنفيذ الضغطة الأولى فوراً
-                        fireproximityprompt(prompt);
-                        
-                        -- إذا كان الزر يحتاج وقت (Hold)، ننتظر قليلاً بدلاً من تكرار الضغط آلاف المرات
-                        if holdTime > 0 then
-                            task.wait(holdTime + 0.1) 
-                        end
-                        
-                        -- حلقة فحص نهائية للتأكد من نجاح الأخذ
+                        -- [تم التنظيف الشامل لمنع הلاق]: حلقة بسيطة جداً لا تضغط على معالج اللعبة
                         repeat 
-                            fireproximityprompt(prompt);
-                            if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then 
-                                -- تقليل ضغط الفيزياء أثناء عملية Hold
-                                LocalPlayer.Character.HumanoidRootPart.Velocity = Vector3.new(0,0,0);
-                                -- نحدث الـ CFrame بتكرار أقل لتوفير موارد الجهاز
-                                if math.random(1, 3) == 1 then
-                                    LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(LocalPlayer.Character.HumanoidRootPart.Position.X, API.State.FarmDepth, LocalPlayer.Character.HumanoidRootPart.Position.Z) 
-                                end
-                            end
-                            task.wait(0.1) -- تم التعديل من 0.05 لتقليل اللاق بشكل كبير
+                            fireproximityprompt(prompt)
+                            task.wait(0.1) 
                         until not target or not target.Parent or (tick()-start) > 3.5 or not API.State.AutoFarmEnabled 
                     end
                     API.Functions.CustomMove(API.State.SafeZonePos, true)
@@ -125,10 +114,12 @@ end)
 
 local function UpdatePermanentCacheInternal()
     local changed = false
+    local BrainrotsFolder, LuckyBlocksFolder = GetFolders()
+
     for _, r in pairs(API.Constants.Ranks) do
         if not API.State.PermanentCache[r] then API.State.PermanentCache[r] = {}; changed = true end
-        if API.Constants.BrainrotsFolder and API.Constants.BrainrotsFolder:FindFirstChild(r) then
-            for _, m in pairs(API.Constants.BrainrotsFolder[r]:GetChildren()) do
+        if BrainrotsFolder and BrainrotsFolder:FindFirstChild(r) then
+            for _, m in pairs(BrainrotsFolder[r]:GetChildren()) do
                 local actualModel = m:FindFirstChildOfClass("Model") or m
                 local baseName = API.Functions.GetBaseName(actualModel.Name)
                 if not table.find(API.State.PermanentCache[r], baseName) then table.insert(API.State.PermanentCache[r], baseName); changed = true end
@@ -136,8 +127,8 @@ local function UpdatePermanentCacheInternal()
         end
     end
     
-    if API.Constants.LuckyBlocksFolder then
-        for _, b in pairs(API.Constants.LuckyBlocksFolder:GetChildren()) do
+    if LuckyBlocksFolder then
+        for _, b in pairs(LuckyBlocksFolder:GetChildren()) do
             local baseName = API.Functions.GetBaseName(b.Name)
             local targetR = API.Functions.GetTargetRank(b.Name)
             if targetR ~= "Unknown" then
