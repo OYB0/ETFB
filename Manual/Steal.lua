@@ -3,6 +3,7 @@
 local API = getgenv().OYB_API
 local StealPage = API.UI.StealPage
 local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
 
 local searchRow = Instance.new("Frame", StealPage)
 searchRow.Size = UDim2.new(1, -10, 0, 30); searchRow.Position = UDim2.new(0, 0, 0, 2); searchRow.BackgroundTransparency = 1
@@ -66,12 +67,9 @@ for _, r in ipairs(FilterCategories) do
     local fb = Instance.new("TextButton", fScroll)
     fb.Size = UDim2.new(1, 0, 0, 26); fb.Text = r; fb.BackgroundColor3 = Color3.fromRGB(35,35,35); fb.TextColor3 = Color3.new(1,1,1); fb.Font = "GothamBold"; fb.TextSize = 10; fb.ZIndex = 22; Instance.new("UICorner", fb).CornerRadius = UDim.new(0, 5)
     fb.MouseButton1Click:Connect(function()
-        if API.State.ActiveFilters[r] then 
-            API.State.ActiveFilters[r] = nil; fb.BackgroundColor3 = Color3.fromRGB(35,35,35); fb.TextColor3 = Color3.new(1,1,1)
-        else 
-            API.State.ActiveFilters[r] = true; fb.BackgroundColor3 = Color3.fromRGB(0,120,255); fb.TextColor3 = Color3.new(1,1,1) 
-        end
-        if API.Functions.UpdateUnits then API.Functions.UpdateUnits() end 
+        if API.State.ActiveFilters[r] then API.State.ActiveFilters[r] = nil; fb.BackgroundColor3 = Color3.fromRGB(35,35,35); fb.TextColor3 = Color3.new(1,1,1)
+        else API.State.ActiveFilters[r] = true; fb.BackgroundColor3 = Color3.fromRGB(0,120,255); fb.TextColor3 = Color3.new(1,1,1) end
+        if API.Functions.UpdateUnits then API.Functions.UpdateUnits() end
     end)
     filterRankBtns[r] = fb
 end
@@ -86,14 +84,15 @@ API.Functions.SetFilterOpen = function(open)
     tw:Play(); tw.Completed:Connect(function() filterBusy = false; if not open then filterPopup.Visible = false end end)
 end
 
--- يتم فتح أو إغلاق الفلتر فقط من الزر المخصص له أو من زر الإغلاق (X)
 filterBtn.MouseButton1Click:Connect(function() API.Functions.SetFilterOpen(not API.State.FilterOpen) end)
 fCloseBtn.MouseButton1Click:Connect(function() API.Functions.SetFilterOpen(false) end)
 fClearBtn.MouseButton1Click:Connect(function()
     API.State.ActiveFilters = {}
     for _, fb2 in pairs(filterRankBtns) do fb2.BackgroundColor3 = Color3.fromRGB(35,35,35); fb2.TextColor3 = Color3.new(1,1,1) end
-    if API.Functions.UpdateUnits then API.Functions.UpdateUnits() end 
+    if API.Functions.UpdateUnits then API.Functions.UpdateUnits() end
 end)
+
+-- [تم حذف كود الإغلاق التلقائي بالكامل من هنا. الفلتر الآن يغلق فقط من زر الـ X أو الزر الأساسي]
 
 local UiButtonsCache = {}
 local function AddToggleDynamic(uid, displayName, spawned, parent, targetTable, layoutOrder)
@@ -227,5 +226,5 @@ dupBtn.MouseButton1Click:Connect(function()
     dupBtn.Text = API.State.ShowDuplicates and "Show Duplicates: ON" or "Show Duplicates: OFF"
     dupBtn.BackgroundColor3 = API.State.ShowDuplicates and Color3.fromRGB(0,120,55) or Color3.fromRGB(150,35,35)
     API.State.SelectedUnits = {} 
-    if API.Functions.UpdateUnits then API.Functions.UpdateUnits() end
+    API.Functions.UpdateUnits()
 end)
