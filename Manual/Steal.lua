@@ -72,7 +72,7 @@ for _, r in ipairs(FilterCategories) do
         else 
             API.State.ActiveFilters[r] = true; fb.BackgroundColor3 = Color3.fromRGB(0,120,255); fb.TextColor3 = Color3.new(1,1,1) 
         end
-        if API.Functions.UpdateUnits then API.Functions.UpdateUnits() end -- [تم الإصلاح: تحديث القائمة فوراً]
+        if API.Functions.UpdateUnits then API.Functions.UpdateUnits() end 
     end)
     filterRankBtns[r] = fb
 end
@@ -92,7 +92,7 @@ fCloseBtn.MouseButton1Click:Connect(function() API.Functions.SetFilterOpen(false
 fClearBtn.MouseButton1Click:Connect(function()
     API.State.ActiveFilters = {}
     for _, fb2 in pairs(filterRankBtns) do fb2.BackgroundColor3 = Color3.fromRGB(35,35,35); fb2.TextColor3 = Color3.new(1,1,1) end
-    if API.Functions.UpdateUnits then API.Functions.UpdateUnits() end -- [تم الإصلاح: تحديث القائمة فوراً]
+    if API.Functions.UpdateUnits then API.Functions.UpdateUnits() end 
 end)
 
 UserInputService.InputBegan:Connect(function(inp)
@@ -133,8 +133,9 @@ local function AddToggleDynamic(uid, displayName, spawned, parent, targetTable, 
     btn:SetAttribute("UID", uid)
     
     btn.MouseButton1Click:Connect(function()
-        targetTable[uid] = not targetTable[uid]
-        btn.BackgroundColor3 = targetTable[uid] and Color3.fromRGB(0, 120, 255) or Color3.fromRGB(30, 30, 30)
+        -- [تم الإصلاح هنا: استخدام المرجع المباشر API.State بدلاً من الجدول المؤقت القديم لمنع الجلتش بعد الـ Clear]
+        API.State.SelectedUnits[uid] = not API.State.SelectedUnits[uid]
+        btn.BackgroundColor3 = API.State.SelectedUnits[uid] and Color3.fromRGB(0, 120, 255) or Color3.fromRGB(30, 30, 30)
     end)
     
     btn.Parent = parent
