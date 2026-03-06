@@ -69,7 +69,6 @@ for _, r in ipairs(FilterCategories) do
     fb.MouseButton1Click:Connect(function()
         if API.State.ActiveFilters[r] then API.State.ActiveFilters[r] = nil; fb.BackgroundColor3 = Color3.fromRGB(35,35,35); fb.TextColor3 = Color3.new(1,1,1)
         else API.State.ActiveFilters[r] = true; fb.BackgroundColor3 = Color3.fromRGB(0,120,255); fb.TextColor3 = Color3.new(1,1,1) end
-        if API.Functions.UpdateUnits then API.Functions.UpdateUnits() end
     end)
     filterRankBtns[r] = fb
 end
@@ -89,10 +88,17 @@ fCloseBtn.MouseButton1Click:Connect(function() API.Functions.SetFilterOpen(false
 fClearBtn.MouseButton1Click:Connect(function()
     API.State.ActiveFilters = {}
     for _, fb2 in pairs(filterRankBtns) do fb2.BackgroundColor3 = Color3.fromRGB(35,35,35); fb2.TextColor3 = Color3.new(1,1,1) end
-    if API.Functions.UpdateUnits then API.Functions.UpdateUnits() end
 end)
 
--- [تم حذف كود الإغلاق التلقائي بالكامل من هنا. الفلتر الآن يغلق فقط من زر الـ X أو الزر الأساسي]
+UserInputService.InputBegan:Connect(function(inp)
+    if inp.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
+    if not API.State.FilterOpen then return end
+    local mp = inp.Position; local fp = filterPopup.AbsolutePosition; local fs = filterPopup.AbsoluteSize
+    local onPopup = mp.X >= fp.X and mp.X <= fp.X+fs.X and mp.Y >= fp.Y and mp.Y <= fp.Y+fs.Y
+    local bp = filterBtn.AbsolutePosition; local bs = filterBtn.AbsoluteSize
+    local onBtn = mp.X >= bp.X and mp.X <= bp.X+bs.X and mp.Y >= bp.Y and mp.Y <= bp.Y+bs.Y
+    if not onPopup and not onBtn then API.Functions.SetFilterOpen(false) end
+end)
 
 local UiButtonsCache = {}
 local function AddToggleDynamic(uid, displayName, spawned, parent, targetTable, layoutOrder)
@@ -122,8 +128,8 @@ local function AddToggleDynamic(uid, displayName, spawned, parent, targetTable, 
     btn:SetAttribute("UID", uid)
     
     btn.MouseButton1Click:Connect(function()
-        API.State.SelectedUnits[uid] = not API.State.SelectedUnits[uid]
-        btn.BackgroundColor3 = API.State.SelectedUnits[uid] and Color3.fromRGB(0, 120, 255) or Color3.fromRGB(30, 30, 30)
+        targetTable[uid] = not targetTable[uid]
+        btn.BackgroundColor3 = targetTable[uid] and Color3.fromRGB(0, 120, 255) or Color3.fromRGB(30, 30, 30)
     end)
     
     btn.Parent = parent
